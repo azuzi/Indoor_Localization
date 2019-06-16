@@ -24,8 +24,8 @@ class DrawParticle extends View {
 
 
     private float radius = 1;
-    private float xScale = 871/48.99f;
-    private float yScale = 270/15.04f;
+    private float xScale = 2613/48.99f;
+    private float yScale = 810/15.04f;
     private Paint m1Paint;
 
 ///
@@ -48,7 +48,8 @@ class DrawParticle extends View {
 
         workingBitmap.getWidth();
         mutableBitmap = workingBitmap.copy(Bitmap.Config.ARGB_8888, true);
-        Log.d(TAG, String.valueOf(workingBitmap.getHeight()) + " " +String.valueOf(workingBitmap.getWidth()));
+        Log.d(TAG, "working"+" " +String.valueOf(workingBitmap.getHeight()) + " " +String.valueOf(workingBitmap.getWidth()));
+        Log.d(TAG, "Mutable"+" " + String.valueOf(mutableBitmap.getHeight()) + " " +String.valueOf(mutableBitmap.getWidth()));
         //  mutable1Bitmap = mutableBitmap.copy(Bitmap.Config.ARGB_8888, true);
 
 
@@ -80,15 +81,13 @@ class DrawParticle extends View {
             floorPlan.setImageBitmap(mutableBitmap);
 
             m1Paint = new Paint();
-            m1Paint.setColor(Color.BLACK);
-
-
+            m1Paint.setColor(Color.GREEN);
             for (int i=0;i<landmarks.length;i++){
-                Log.d(TAG, String.valueOf(landmarks[i].x) +" " +String.valueOf(landmarks[i].y));
+//                Log.d(TAG, String.valueOf(landmarks[i].x) +" " +String.valueOf(landmarks[i].y));
                 float x1 = landmarks[i].x*xScale;
                 float y1 = landmarks[i].y*yScale;
-                Log.d(TAG, String.valueOf(x1) +" " +String.valueOf(y1));
-                mCanvas.drawCircle(x1,y1,4,m1Paint);
+//                Log.d(TAG, String.valueOf(x1) +" " +String.valueOf(y1));
+                mCanvas.drawCircle(x1,y1,5,m1Paint);
             }
             floorPlan.setAdjustViewBounds(true);
 

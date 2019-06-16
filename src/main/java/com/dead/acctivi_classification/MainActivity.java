@@ -37,9 +37,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private HandlerThread movementThread = new HandlerThread("thread");
     private Handler threadHandler;
 	
-	 private ParticleFilter particleFilter;
+    private ParticleFilter particleFilter;
     private final int NUM_PARTICLES =10000;
-	 private  PointF[] landmarks = new PointF[]{
+    private  PointF[] landmarks = new PointF[]{
             new PointF(2.3f,14.04f),new PointF(2.3f,9.04f),new PointF(5.89f,14.04f),new PointF(5.89f,9.04f),
             new PointF(9.09f,14.04f),
             new PointF(9.09f,9.04f),new PointF(9.09f,10.69f),new PointF(13.02f,10.69f),
@@ -151,10 +151,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         state = "Idle";
         movementThread.start();
         threadHandler = new Handler(movementThread.getLooper());
-        threadHandler.postDelayed(new movementDetector(), 100);
-		
-		 particleFilter = new ParticleFilter(NUM_PARTICLES,landmarks,WORLD_WIDTH,WORLD_HEIGHT);
+        //threadHandler.postDelayed(new movementDetector(), 100);
 
+
+        particleFilter = new ParticleFilter(NUM_PARTICLES,landmarks,WORLD_WIDTH,WORLD_HEIGHT);
         drawParticles = new DrawParticle(this);
         drawParticles.DrawParticleView(image,ParticleFilter.particles,landmarks);
 
@@ -256,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     public void start() {
-        Log.d(TAG, "olga::start");
+        //Log.d(TAG, "olga::start");
         super.onStart();
         if (mSensorAccelero != null) {
             mSensorManager.registerListener(this, mSensorAccelero, SensorManager.SENSOR_DELAY_NORMAL);
@@ -273,14 +273,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
     public void stop() {
-        Log.d(TAG, "olga::stop");
+
         super.onStop();
         mSensorManager.unregisterListener(this);
         Toast.makeText(getBaseContext(), "Data Recording Stopped", Toast.LENGTH_LONG).show();
     }
 
     public void processsData () {
-        Log.d(TAG, "olga::processing data");
+
         avgX = calculations.findAverage(dataX);
         avgY = calculations.findAverage(dataY);
         avgZ = calculations.findAverage(dataZ);
