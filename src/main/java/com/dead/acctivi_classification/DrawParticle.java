@@ -70,31 +70,26 @@ class DrawParticle extends View {
 
     }
 
-    public int DrawParticleView(ImageView floorPlan, Particle[] particles,PointF[]landmarks) {
+    public int DrawParticleView(ImageView floorPlan, Particle[] particles) {
         for (Particle particle : particles) {
             //set the x and y dimensions
             float x = particle.x*xScale ;//this has to be changed according to our x and y
             float y = particle.y*yScale ;
             mCanvas.drawCircle(x, y, radius, mPaint);//draw the particle
             floorPlan.setAdjustViewBounds(true);
-
             floorPlan.setImageBitmap(mutableBitmap);
-
-            m1Paint = new Paint();
-            m1Paint.setColor(Color.GREEN);
-            for (int i=0;i<landmarks.length;i++){
+//            m1Paint = new Paint();
+//            m1Paint.setColor(Color.GREEN);
+//            for (int i=0;i<landmarks.length;i++){
 //                Log.d(TAG, String.valueOf(landmarks[i].x) +" " +String.valueOf(landmarks[i].y));
-                float x1 = landmarks[i].x*xScale;
-                float y1 = landmarks[i].y*yScale;
+//                float x1 = landmarks[i].x*xScale;
+ //               float y1 = landmarks[i].y*yScale;
 //                Log.d(TAG, String.valueOf(x1) +" " +String.valueOf(y1));
-                mCanvas.drawCircle(x1,y1,5,m1Paint);
+//                mCanvas.drawCircle(x1,y1,5,m1Paint);
             }
-            floorPlan.setAdjustViewBounds(true);
-
-            floorPlan.setImageBitmap(mutableBitmap);
-
-
-        }
+       //     floorPlan.setAdjustViewBounds(true);
+     //       floorPlan.setImageBitmap(mutableBitmap);
+   //     }
         return 0;
     }
   /*  public void DrawLandView(ImageView floorPlan, PointF[] landmarks){
@@ -107,9 +102,7 @@ class DrawParticle extends View {
             mCanvas.drawCircle(x,y,4,mPaint);
         }
         floorPlan.setAdjustViewBounds(true);
-
         floorPlan.setImageBitmap(mutableBitmap);
-
     }*/
 }
 

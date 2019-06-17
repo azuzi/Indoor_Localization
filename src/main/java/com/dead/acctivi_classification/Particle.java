@@ -14,6 +14,8 @@ public class Particle {
     public float y;
     public Random random;
     public double probability = 0;
+    public float forwardNoise, turnNoise, senseNoise;
+
 
     public Particle(PointF[] landmarks, int width, int height) {
         this.landmarks = landmarks;
@@ -34,7 +36,7 @@ public class Particle {
         orientation = orientation + turn + (float)random.nextGaussian();
         orientation = circle(orientation, 2f * (float)Math.PI);
 
-        double dist = forward + random.nextGaussian() ;
+        double dist = forward * 0.6 ;  // one step lenghth is assumed as 60 cm
 
         x += Math.cos(orientation) * dist;
         y += Math.sin(orientation) * dist;
@@ -49,5 +51,36 @@ public class Particle {
     }
 
 
+    public double measurementProb(float[] measurement) {//just setting new probability
+        double prob = 1.0;
+        for(int i=0;i<landmarks.length;i++) {
+            float dist = (float) MathX.distance(x, y, landmarks[i].x, landmarks[i].y);
+            prob *= MathX.Gaussian(dist, senseNoise, measurement[i]);
+        }
+        probability = prob;
+        return prob;
+    }
 
+    public void set(float x, float y, float orientation, double probability) throws Exception {
+        if(x < 0 || x >= worldWidth) {
+            throw new Exception("X coordinate out of bounds");
+        }
+        if(y < 0 || y >= worldHeight) {
+            throw new Exception("Y coordinate out of bounds");
+        }
+        if(orientation < 0 || orientation >= 2 * Math.PI) {
+            throw new Exception("X coordinate out of bounds");
+        }
+        this.x = x;
+        this.y = y;
+        this.orientation = orientation;
+        this.probability = probability;
+    }
+
+
+    public void setNoise(float Fnoise, float Tnoise, float Snoise) {
+        this.forwardNoise = Fnoise;
+        this.turnNoise = Tnoise;
+        this.senseNoise = Snoise;
+    }
 }

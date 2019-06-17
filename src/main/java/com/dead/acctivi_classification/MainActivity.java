@@ -34,21 +34,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final String TAG = "MainActivity";
 
 
-    private HandlerThread movementThread = new HandlerThread("thread");
-    private Handler threadHandler;
-	
     private ParticleFilter particleFilter;
-    private final int NUM_PARTICLES =10000;
-    private  PointF[] landmarks = new PointF[]{
-            new PointF(2.3f,14.04f),new PointF(2.3f,9.04f),new PointF(5.89f,14.04f),new PointF(5.89f,9.04f),
-            new PointF(9.09f,14.04f),
-            new PointF(9.09f,9.04f),new PointF(9.09f,10.69f),new PointF(13.02f,10.69f),
-            new PointF(13.02f,9.04f),
-            new PointF(16.84f,10.69f),new PointF(16.84f,9.04f),new PointF(16.84f,13.44f),new PointF(19.14f,9.04f),
-            new PointF(19.14f,13.44f),
-            new PointF(19.14f,10.69f),new PointF(16.84f,6.18f),new PointF(19.14f,6.18f),new PointF(22.45f,10.69f),
-            new PointF(22.45f,9.04f),
-            new PointF(26.88f,10.69f),new PointF(26.88f,9.04f),new PointF(31.43f,10.69f),new PointF(31.43f,9.04f)
+    private final int NUM_PARTICLES = 10000;
+    private PointF[] landmarks = new PointF[]{
+            new PointF(2.3f, 14.04f), new PointF(2.3f, 9.04f), new PointF(5.89f, 14.04f), new PointF(5.89f, 9.04f),
+            new PointF(9.09f, 14.04f),
+            new PointF(9.09f, 9.04f), new PointF(9.09f, 10.69f), new PointF(13.02f, 10.69f),
+            new PointF(13.02f, 9.04f),
+            new PointF(16.84f, 10.69f), new PointF(16.84f, 9.04f), new PointF(16.84f, 13.44f), new PointF(19.14f, 9.04f),
+            new PointF(19.14f, 13.44f),
+            new PointF(19.14f, 10.69f), new PointF(16.84f, 6.18f), new PointF(19.14f, 6.18f), new PointF(22.45f, 10.69f),
+            new PointF(22.45f, 9.04f),
+            new PointF(26.88f, 10.69f), new PointF(26.88f, 9.04f), new PointF(31.43f, 10.69f), new PointF(31.43f, 9.04f)
     };
     private DrawParticle drawLandmarks;
 
@@ -68,7 +65,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private List<DataPoint> listDataPointOriginal = new ArrayList<>();
 
 
-
     private TextView activity;
     private ImageView floor_map;
     private SensorManager mSensorManager;
@@ -76,13 +72,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mAccelero;
     private Sensor magneto;
 
-    float avgX,avgY,avgZ, varX,varY,varZ,sdX,sdY,sdZ;
+    float avgX, avgY, avgZ, varX, varY, varZ, sdX, sdY, sdZ;
     private Button btStart, btStop;
 
     private int K;
     private double spRatio;
-	
-	 private DrawParticle drawParticles;
+
+    private DrawParticle drawParticles;
     private ImageView image;
 
 
@@ -93,15 +89,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float[] iMat = new float[9];
     float[] orientation = new float[3];
 
+    private HandlerThread movementThread = new HandlerThread("thread");
+    private Handler threadHandler;
+
 
     private String peviousState;
-    private String currentAngle;
-    private String PreviusAngle;
-    private static String state;
-    private static int stepCount = 0;
-    private static int walkingFrequency = 1;
-
-
+    String state;
+    private int stepCount = 0;
+    private int walkingFrequency = 1;
+    private int lastDirection = 0, currentDirection = 0, orient = 0;
 
 
     @Override
@@ -112,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         btStart = (Button) findViewById(R.id.btStart);
         btStop = (Button) findViewById(R.id.btStop);
         activity = (TextView) findViewById(R.id.textViewZ);
-		image = (ImageView)findViewById(R.id.imageView);
+        image = (ImageView) findViewById(R.id.imageView);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorAccelero = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
@@ -125,10 +121,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         String sensor_error = getResources().getString(R.string.error_no_sensor);
         start();
 
-        if (mSensorAccelero == null) {activity.setText(sensor_error);}
-        if (mAccelero == null) {activity.setText(sensor_error);}
-        if (magneto == null) {activity.setText(sensor_error);}
-        else{ activity.setText(" Waiting for Data");}
+        if (mSensorAccelero == null) {
+            activity.setText(sensor_error);
+        }
+        if (mAccelero == null) {
+            activity.setText(sensor_error);
+        }
+        if (magneto == null) {
+            activity.setText(sensor_error);
+        } else {
+            activity.setText(" Waiting for Data");
+        }
 
         classifier = new Classifier();
         populateList();
@@ -145,18 +148,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         btStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // stop();
+                // stop();
             }
         });
         state = "Idle";
+
+
+        particleFilter = new ParticleFilter(NUM_PARTICLES, landmarks, WORLD_WIDTH, WORLD_HEIGHT);
+        drawParticles = new DrawParticle(this);
+        drawParticles.DrawParticleView(image, ParticleFilter.particles);
+
         movementThread.start();
         threadHandler = new Handler(movementThread.getLooper());
-        //threadHandler.postDelayed(new movementDetector(), 100);
-
-
-        particleFilter = new ParticleFilter(NUM_PARTICLES,landmarks,WORLD_WIDTH,WORLD_HEIGHT);
-        drawParticles = new DrawParticle(this);
-        drawParticles.DrawParticleView(image,ParticleFilter.particles,landmarks);
+        threadHandler.post(new movementDetector());
 
     }
 
@@ -181,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     dataZ.remove(0);
                 }
                 dataZ.add(event.values[2]);
-            }finally {
+            } finally {
             }
             processsData();
         }
@@ -192,9 +196,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (sensorType == Sensor.TYPE_ACCELEROMETER) {
             gData = event.values.clone();
         }
-        if ( SensorManager.getRotationMatrix( rMat, iMat, gData, mData ) ) {
-            mAzimuth= (int) ( Math.toDegrees( SensorManager.getOrientation( rMat, orientation )[0] ) + 360 ) % 360;
-            Float aa = Float.valueOf(mAzimuth);
+        calculateAzimuth();
+
+    }
+
+    void calculateAzimuth() {
+        if (SensorManager.getRotationMatrix(rMat, iMat, gData, mData)) {
+            mAzimuth = (int) (Math.toDegrees(SensorManager.getOrientation(rMat, orientation)[0]) + 360) % 360;
+            //Float aa = Float.valueOf(mAzimuth);
 
         }
     }
@@ -205,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    protected void onDestroy(){
+    protected void onDestroy() {
         super.onDestroy();
         movementThread.quit();
         stop();
@@ -271,7 +280,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
 
-
     public void stop() {
 
         super.onStop();
@@ -279,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Toast.makeText(getBaseContext(), "Data Recording Stopped", Toast.LENGTH_LONG).show();
     }
 
-    public void processsData () {
+    public void processsData() {
 
         avgX = calculations.findAverage(dataX);
         avgY = calculations.findAverage(dataY);
@@ -296,30 +304,104 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Category category = classifier.predictNew(varX, varY,varZ,sdX,sdY,sdZ);
+                Category category = classifier.predictNew(varX, varY, varZ, sdX, sdY, sdZ);
                 String cat = category.toString();
                 state = cat;
-                activity.setText(cat);
-
-
+                //activity.setText(cat);
             }
         });
     }
-    static long StartTime ;
-    static long StopTime ;
 
-    static class movementDetector implements Runnable{
+    static long StartTime;
+    static long StopTime;
+
+    class movementDetector implements Runnable {
         @Override
         public void run() {
-            if (state == "Idle" ){
-                StartTime = System.nanoTime(); //set sta rt time 0
-            }
-            while (state == "Walk" ){
-                StopTime = System.nanoTime();
-                stepCount =(int)(StopTime - StartTime)/1000000000 * walkingFrequency;
-            }
-
+            updateTextView();
         }
     }
 
+    protected void updateTextView() {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (state == "Idle") {
+                    StartTime = System.nanoTime(); //set sta rt time 0
+                    lastDirection = mAzimuth;
+                    orient = lastDirection - currentDirection;
+                    activity.setText(state + "  " + String.valueOf(orient));
+                    if (stepCount > 0) {
+                        try {
+                            particleFilter.move(orient, stepCount);
+                            particleFilter.eliminate();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        Particle[] newParticles = new Particle[particleFilter.numParticles - particleFilter.eliminateCount];
+                        int count = 0;
+                        for (int i = 0; i < ParticleFilter.particles.length; i++) {
+                            if (particleFilter.particles[i].probability > 0) {
+                                newParticles[count] = particleFilter.particles[i];
+                                count += 1;
+                            }
+                        }
+
+                        try {
+                            particleFilter.reSamp(newParticles);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        drawParticles.DrawParticleView(image, ParticleFilter.particles);
+                        stepCount = 0;
+                    }
+                }
+                while (state == "Walk") {
+                    activity.setText("threadrunning");
+                    StopTime = System.nanoTime();
+                    stepCount = Math.round((StopTime - StartTime) / 1000000000) * walkingFrequency;
+                    currentDirection = mAzimuth;
+                }
+            }
+
+        });
+     }
 }
+
+
+
+
+
+
+
+
+
+
+
+    /*
+    public class particleUpdate implements Runnable{
+
+        private float orient;
+        //private int stepCount;
+        public particleUpdate(){
+        }
+        //public void update ( float orient, int stepCount ){
+         //   this.orient=orient;
+          //  this.stepCount=stepCount;
+        //}
+
+        @Override
+        public void run() {
+            try {
+                particleFilter.move(orient,stepCount);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+*/
+
+
