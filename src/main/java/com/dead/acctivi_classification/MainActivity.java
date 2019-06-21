@@ -156,11 +156,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         particleFilter = new ParticleFilter(NUM_PARTICLES, landmarks, WORLD_WIDTH, WORLD_HEIGHT);
         drawParticles = new DrawParticle(this);
+        for (int i = 0; i < NUM_PARTICLES; i++)
+        { particleFilter.particles[i].probability = 1/NUM_PARTICLES;}
         drawParticles.DrawParticleView(image, ParticleFilter.particles);
 
         movementThread.start();
         threadHandler = new Handler(movementThread.getLooper());
-        threadHandler.post(new movementDetector());
+        threadHandler.postDelayed(new movementDetector(),500);
 
     }
 
@@ -262,6 +264,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         listDataPoint.clear();
         listDataPoint.addAll(classifier.getListTestData());
         listDataPoint.addAll(classifier.getListTrainData());
+        classifier.classify();
+        activity.setText("Accuracy = " + classifier.getAccuracy());
     }
 
     public void start() {
@@ -304,10 +308,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (dataX.size() > 25) {
                 Category category = classifier.predictNew(varX, varY, varZ, sdX, sdY, sdZ);
                 String cat = category.toString();
                 state = cat;
-                //activity.setText(cat);
+                activity.setText(cat); }
             }
         });
     }
@@ -318,7 +323,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     class movementDetector implements Runnable {
         @Override
         public void run() {
-            updateTextView();
+            while (1 < 2) {
+                updateTextView();
+            }
         }
     }
 
@@ -327,49 +334,55 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (state == "Idle") {
-                    StartTime = System.nanoTime(); //set sta rt time 0
-                    lastDirection = mAzimuth;
-                    orient = lastDirection - currentDirection;
-                    activity.setText(state + "  " + String.valueOf(orient));
-                    if (stepCount > 0) {
-                        try {
-                            particleFilter.move(orient, stepCount);
-                            particleFilter.eliminate();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
 
-                        Particle[] newParticles = new Particle[particleFilter.numParticles - particleFilter.eliminateCount];
-                        int count = 0;
-                        for (int i = 0; i < ParticleFilter.particles.length; i++) {
-                            if (particleFilter.particles[i].probability > 0) {
-                                newParticles[count] = particleFilter.particles[i];
-                                count += 1;
+                    if (state == "Idle") {
+                        StartTime = System.nanoTime(); //set sta rt time 0
+                        lastDirection = mAzimuth;
+                        orient = currentDirection - lastDirection;
+                        //activity.setText(state + "  " + String.valueOf(orient));
+                        if (stepCount > 0) {
+                            try {
+                                particleFilter.move(orient, stepCount);
+                                particleFilter.eliminate();
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                        }
+                            Log.d("test", String.valueOf(particleFilter.eliminateCount));
+                            Particle[] newParticles = new Particle[NUM_PARTICLES - particleFilter.eliminateCount];
+                            int count = 0;
+                            for (int i = 0; i < ParticleFilter.particles.length; i++) {
+                                if (particleFilter.particles[i].probability > 0) {
+                                    newParticles[count] = particleFilter.particles[i];
+                                    count += 1;
+                                }
+                            }
 
-                        try {
-                            particleFilter.reSamp(newParticles);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                            try {
+                                particleFilter.reSamp(newParticles);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            //Particle best = particleFilter.getBestParticle();//process of finding the next best particle
+                            drawParticles.cleanView(image);
+                            drawParticles.DrawParticleView(image, ParticleFilter.particles);
                         }
-
-                        drawParticles.DrawParticleView(image, ParticleFilter.particles);
                         stepCount = 0;
                     }
+
+                    if (state == "Walk") {
+                       // activity.setText("threadrunning");
+                        StopTime = System.nanoTime();
+                        stepCount = Math.round((StopTime - StartTime) / 1000000000) * walkingFrequency;
+                        currentDirection = mAzimuth;
+                    }
+//                    Log.d("test", "run method finished");
+
                 }
-                while (state == "Walk") {
-                    activity.setText("threadrunning");
-                    StopTime = System.nanoTime();
-                    stepCount = Math.round((StopTime - StartTime) / 1000000000) * walkingFrequency;
-                    currentDirection = mAzimuth;
-                }
-            }
 
         });
-     }
+    }
 }
+
 
 
 

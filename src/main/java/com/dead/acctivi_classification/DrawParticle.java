@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -16,8 +17,8 @@ class DrawParticle extends View {
     private static final String TAG = "Draw";
     private final Bitmap mBitmap;
     // private final Bitmap bitmap;
-    private final Bitmap mutableBitmap;
-    private final Canvas mCanvas;
+    private Bitmap mutableBitmap;
+    private Canvas mCanvas;
     private final Paint mPaint;
     private final Bitmap workingBitmap;
     //private final Bitmap mutable1Bitmap;
@@ -67,6 +68,15 @@ class DrawParticle extends View {
 
         //  mPaint = new Paint();//initialize paint object
         //  mPaint.setColor(Color.BLACK);//colour of the particle
+
+    }
+
+    public void cleanView(ImageView plan){
+        mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        mutableBitmap = workingBitmap.copy(Bitmap.Config.ARGB_8888, true);
+        mCanvas = new Canvas(mutableBitmap);
+        plan.setAdjustViewBounds(true);
+        plan.setImageBitmap(mutableBitmap);
 
     }
 

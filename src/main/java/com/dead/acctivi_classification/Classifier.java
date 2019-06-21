@@ -157,7 +157,7 @@ public class Classifier {
 
     Category predictNew(double vX, double vY, double vZ, double sdX, double sdY, double sdZ){
 
-        DataPoint dataPoint = new DataPoint(vX,vY,vZ,sdX,sdY,sdZ,Category.values()[2]);
+        DataPoint dataPoint = new DataPoint(vX,vY,vZ,sdX,sdY,sdZ,Category.values()[4]);
         dataPoint.setCategory(Category.TEST);
         Category category = classifyDataPoint(dataPoint);
 
